@@ -1,6 +1,7 @@
 const {
   GraphQLInt,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -90,6 +91,54 @@ const RootQuery = new GraphQLObjectType({
   },
 });
 
+/**
+ * allows modifications to the graph
+ * each field is a different type of operation
+ */
+const mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addUser: {
+      type: UserType, //type of data being returned from resolve
+      args: {
+        //all the data being added to the new user
+        firstName: { type: new GraphQLNonNull(GraphQLString) }, //GraphQLNonNull requires this arg to be non-null
+        age: { type: new GraphQLNonNull(GraphQLInt) },
+        companyId: { type: GraphQLString }, //since this isn't wrapped in a non-null, it isn't a req'd arg
+      },
+      resolve(parentValue, { firstName, age }) {
+        return axios
+          .post(`${baseUrl}/users`, { firstName, age })
+          .then((res) => res.data);
+      },
+    },
+    deleteUser: {
+      type: UserType,
+      args: { id: { type: new GraphQLNonNull(GraphQLString) } },
+      resolve(parentValue, { id }) {
+        return axios.delete(`${baseUrl}/users/${id}`).then((res) => res.data);
+        //returns null on successful deletion
+      },
+    },
+    editUser: {
+      type: UserType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        firstName: { type: GraphQLString },
+        age: { type: GraphQLInt },
+        companyId: { type: GraphQLString },
+      },
+      resolve(parentValue, args) {
+        //patch updates an existing record, put overwrites an existing object with exactly what you pass to it
+        return axios
+          .patch(`${baseUrl}/users/${args.id}`, args)
+          .then((res) => res.data);
+      },
+    },
+  },
+});
+
 module.exports = new GraphQLSchema({
   query: RootQuery,
+  mutation,
 });

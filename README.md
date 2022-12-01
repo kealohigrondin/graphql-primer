@@ -45,6 +45,21 @@ company2: company(id: "2") {...companyDetails}
 
 fragment companyDetails on Company {id, name, description}
 
+#### Add a user to the db
+
+mutation{
+addUser (firstName:"Steve", age: 24) {
+id
+firstName
+age
+}}
+
+#### Remove user from db
+
+mutation{
+deleteUser (id: "id_of_user") {id}
+}
+
 ### Json-Server
 
 http://localhost:3000/companies/1/users gets users for company of id "1"
